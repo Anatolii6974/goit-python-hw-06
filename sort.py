@@ -3,7 +3,6 @@ import sys
 import shutil
 from pathlib import Path
 
-
 images = []
 videos = []
 documents = []
@@ -12,17 +11,10 @@ archives = []
 unknown = []
 unknown_ext = set()
 
-# Making Directories
-for cat in ['images','videos','documents','music','archives','unknown']:
-    path = Path(cat)
-    path.mkdir(exist_ok = True)
-
-
 # Get the file extension
 def get_ext(path):
     ext = Path(path)
     return ext.suffix[1:].upper()
-
 
 def normalize(name):
     # Cyrillic into Latin
@@ -83,55 +75,49 @@ def remove_empty_directories(directory):
 
     # Check is dir empty
     if not any(directory_path.iterdir()):
-        # DEL
-        directory_path.rmdir()
+        if directory_path.name not in ['images','videos','documents','music','archives']:
+            # DEL
+            directory_path.rmdir()
+
+# -----------------------------------------------------------------------------
 
 
 # Start parsing
 path = Path(sys.argv[1])
 sort_files(path)
 
+# Making Directories
+for dir in ['images','videos','documents','music','archives']:
+    new_dir = path / dir
+    new_dir.mkdir(exist_ok = True)
 
 # Replace files 
 
 for file in images:
-    path = Path(file)
-    path_dist = Path('images') / f'{normalize(path.name.split(".")[0])}{path.suffix}'
-    new_path = path.replace(path_dist)
+    path_dist = path / 'images' / f'{normalize(file.name.split(".")[0])}{file.suffix}'
+    new_path = file.replace(path_dist)
 
 for file in videos:
-    path = Path(file)
-    path_dist = Path('videos') / f'{normalize(path.name.split(".")[0])}{path.suffix}'
-    new_path = path.replace(path_dist)    
+    path_dist = path / 'videos'/ f'{normalize(file.name.split(".")[0])}{file.suffix}'
+    new_path = file.replace(path_dist)    
 
 for file in documents:
-    path = Path(file)
-    path_dist = Path('documents') / f'{normalize(path.name.split(".")[0])}{path.suffix}'
-    new_path = path.replace(path_dist)        
+    path_dist = path / 'documents' / f'{normalize(file.name.split(".")[0])}{file.suffix}'
+    new_path = file.replace(path_dist)    
 
 for file in music:
-    path = Path(file)
-    path_dist = Path('images') / f'{normalize(path.name.split(".")[0])}{path.suffix}'
-    new_path = path.replace(path_dist)  
+    path_dist = path / 'music' / f'{normalize(file.name.split(".")[0])}{file.suffix}'
+    new_path = file.replace(path_dist)  
 
 for file in archives:
-    archive_path = Path(file)
-    archives_dir = Path("archives")
-    archive_name = archive_path.stem
+    archives_dir = path / 'archives'
+    archive_name = file.stem
     target_dir = archives_dir / archive_name
     target_dir.mkdir(parents=True, exist_ok=True)
-    shutil.unpack_archive(str(archive_path), str(target_dir))    
+    shutil.unpack_archive(str(file), str(target_dir))       
 
-for file in unknown_ext:
-    path = Path(file)
-    path_dist = Path('unknown') / path.name
-    new_path = path.replace(path_dist)         
-
-remove_empty_directories(path)
+remove_empty_directories(path)    
 
 # Print unknown extention from set
 for t in unknown_ext:
     print(f'{t}')
-
-
-
